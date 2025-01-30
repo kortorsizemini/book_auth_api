@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify
+from flask_basicauth import BasicAuth
 
 # Sample data (in-memory database for simplicity)
 books = [
@@ -9,12 +10,18 @@ books = [
 
 app = Flask(__name__)
 
+# Basic authentication configuration
+app.config['BASIC_AUTH_USERNAME'] = 'username'
+app.config['BASIC_AUTH_PASSWORD'] = 'password'
+basic_auth = BasicAuth(app)
+
 @app.route("/")
 def hello_world():
     return "<p>Hello, World!</p>"
 
 # Create (POST) operation
 @app.route('/books', methods=['POST'])
+@basic_auth.required
 def create_book():
     data = request.get_json()
 
@@ -29,11 +36,13 @@ def create_book():
 
 # Read (GET) operation - Get all books
 @app.route('/books', methods=['GET'])
+@basic_auth.required
 def get_all_books():
     return jsonify({"books": books})
 
 # Read (GET) operation - Get a specific book by ID
 @app.route('/books/<int:book_id>', methods=['GET'])
+@basic_auth.required
 def get_book(book_id):
     book = next((b for b in books if b["id"] == book_id), None)
     if book:
@@ -43,6 +52,7 @@ def get_book(book_id):
 
 # Update (PUT) operation
 @app.route('/books/<int:book_id>', methods=['PUT'])
+@basic_auth.required
 def update_book(book_id):
     book = next((b for b in books if b["id"] == book_id), None)
     if book:
@@ -54,6 +64,7 @@ def update_book(book_id):
     
 # Delete operation
 @app.route('/books/<int:book_id>', methods=['DELETE'])
+@basic_auth.required
 def delete_book(book_id):
     global books
     books = [b for b in books if b["id"] != book_id]
